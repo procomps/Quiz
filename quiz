@@ -1,0 +1,51 @@
+#!/bin/bash
+# some largest largest domain extensions array list
+arr[0]=".com"
+arr[1]=".de"
+arr[2]=".ru"
+arr[3]=".net"
+arr[4]=".uk"
+arr[5]=".org"
+arr[6]=".info"
+arr[7]=".nl"
+arr[8]=".eu"
+# Measure start time
+start=$SECONDS
+matches=0
+# just in case delete all 10 index files if such files for some reason exist in current directory before run
+for counter in {1..10}
+do
+        rm -f $counter"index.html"
+done
+
+# starts actual run
+for counter in {1..10}
+do
+	filename=$counter"index.html"	
+	# if filename is empty wget has reqected request or not existing site, do it again until index file is not empty
+	until [  -s $filename ] 	
+	do
+		site_name=$(shuf -n 1 /usr/share/dict/words)
+		#Removes char ' from variable
+		site_name=${site_name//\'/}
+		rand=$[$RANDOM % ${#arr[@]}]
+		extension=${arr[$rand]}
+		site_name="http://www."$site_name$extension
+		wget --execute robots=off --user-agent=Mozilla --output-document=$filename $site_name
+		current_matches=$(grep -rch "href=" $filename)
+		#echo $current_matches
+		matches=$(expr $current_matches + $matches)
+	done
+done
+
+echo "Total matches: $matches (href=)"
+
+# deletes index files
+for counter in {1..10}
+do
+	rm -f $counter"index.html"
+done
+
+# Measure endtime
+end=$SECONDS
+echo "Runtime duration: $((end-start)) seconds."
